@@ -50,32 +50,36 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+// Structural component
 export default function App() {
+  const [movies, setMovies] = useState(tempMovieData);
   return (
     <>
-      <NavBar />
-      <Main />
+      <NavBar movies={movies} />
+      <Main movies={movies} />
     </>
   );
 }
 
-function NavBar() {
+function NavBar({ movies }) {
   return (
     <nav className="nav-bar">
       <Logo />
       <Search />
-      <NumResult />
+      <NumResult movies={movies} />
     </nav>
   );
 }
 
-function NumResult() {
+function NumResult({ movies }) {
   return (
     <p className="num-results">
-      Found <strong>X</strong> results
+      Found <strong>{movies.length}</strong> results
     </p>
   );
 }
+
+// presentational component
 function Logo() {
   return (
     <div className="logo">
@@ -84,6 +88,8 @@ function Logo() {
     </div>
   );
 }
+
+// stateful component
 function Search() {
   const [query, setQuery] = useState("");
   return (
@@ -97,10 +103,11 @@ function Search() {
   );
 }
 
-function Main() {
+// structural
+function Main({ movies }) {
   return (
     <main className="main">
-      <ListBox />
+      <ListBox movies={movies} />
       <WatchedBox />
     </main>
   );
@@ -121,8 +128,8 @@ function Movie({ movie }) {
   );
 }
 
-function MovieList() {
-  const [movies, setMovies] = useState(tempMovieData);
+// stateful
+function MovieList({ movies }) {
   return (
     <ul className="list">
       {movies?.map((movie) => (
@@ -216,7 +223,7 @@ function Summary({ watched }) {
   );
 }
 
-function ListBox() {
+function ListBox({ movies }) {
   const [isOpen1, setIsOpen1] = useState(true);
 
   return (
@@ -227,7 +234,7 @@ function ListBox() {
       >
         {isOpen1 ? "–" : "+"}
       </button>
-      {isOpen1 && <MovieList />}
+      {isOpen1 && <MovieList movies={movies} />}
     </div>
   );
 }
@@ -274,4 +281,20 @@ function ListBox() {
  * -> name the component according to what it does or what it displays
  * -> never declare a new component inside another component
  * -> co-locate related components inside same file
+ */
+
+/**
+ * Component categories
+ * -> stateless/presentational component
+ * - no state
+ * -receive prop and simpley present received data or other content
+ * - usually small and reusable
+ * -> stateful component
+ * - have state
+ * - can be reusable
+ * -> structural component
+ * - Pages, Layouts Screen or app
+ * - esult of composition
+ * - can be huge and non-reusable
+ * - provide structure
  */
