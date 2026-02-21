@@ -55,18 +55,26 @@ export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   return (
     <>
-      <NavBar movies={movies} />
-      <Main movies={movies} />
+      <NavBar>
+        <Search />
+        <NumResult movies={movies} />
+      </NavBar>
+
+      <Main>
+        <ListBox>
+          <MovieList movies={movies} />
+        </ListBox>
+        <WatchedBox />
+      </Main>
     </>
   );
 }
 
-function NavBar({ movies }) {
+function NavBar({ children }) {
   return (
     <nav className="nav-bar">
       <Logo />
-      <Search />
-      <NumResult movies={movies} />
+      {children}
     </nav>
   );
 }
@@ -104,13 +112,8 @@ function Search() {
 }
 
 // structural
-function Main({ movies }) {
-  return (
-    <main className="main">
-      <ListBox movies={movies} />
-      <WatchedBox />
-    </main>
-  );
+function Main({ children }) {
+  return <main className="main">{children}</main>;
 }
 
 function Movie({ movie }) {
@@ -223,7 +226,7 @@ function Summary({ watched }) {
   );
 }
 
-function ListBox({ movies }) {
+function ListBox({ children }) {
   const [isOpen1, setIsOpen1] = useState(true);
 
   return (
@@ -234,7 +237,7 @@ function ListBox({ movies }) {
       >
         {isOpen1 ? "–" : "+"}
       </button>
-      {isOpen1 && <MovieList movies={movies} />}
+      {isOpen1 && children}
     </div>
   );
 }
@@ -297,4 +300,15 @@ function ListBox({ movies }) {
  * - esult of composition
  * - can be huge and non-reusable
  * - provide structure
+ */
+
+/**
+ * COMPONENT COMPOSITION
+ * -> using a component inside a compoent dont let it to be reused
+ * -> in component composition we pass children as a prop and now the component is reusable too
+ * -> component composition is combining different compoent using the children prop (or explicitly defined props)
+ * ->WE use component composition in 2 cases
+ * - create highly reusable and flexible components
+ * - fix a prop drilling (great for layouts)
+ * - [possible because components dont need to know their children in advance]
  */
