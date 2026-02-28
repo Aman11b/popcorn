@@ -97,7 +97,7 @@ ol[role="list"] {
   clip-path: inset(100%);
   clip: rect(0 0 0 0);
   height: 1px;
-  overflow: hidden;
+  overflow-y: auto;
   position: absolute;
   white-space: nowrap;
   width: 1px;
@@ -107,7 +107,7 @@ ol[role="list"] {
 
 @media (prefer-reduced-motion: reduce) {
   html:focus-within {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
   }
 
   *,
@@ -172,7 +172,7 @@ body {
   background-color: var(--color-background-500);
   border-radius: 0.9rem;
 
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -257,7 +257,7 @@ body {
   list-style: none;
   padding: 0.8rem 0;
 
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .list-watched {
