@@ -55,18 +55,21 @@ const KEY = "20de2ed1";
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
+  const [isLoading, SetIsLoading] = useState(false);
   const query = "game";
 
   // this will load after the component has been painted on screen
   useEffect(function () {
     async function fetchMovies() {
+      SetIsLoading(true);
       const res = await fetch(
         `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
       );
       // this is side effect
       const data = await res.json();
       setMovies(data.Search);
-      console.log(data.Search);
+      SetIsLoading(false);
+      // console.log(data.Search);
     }
     fetchMovies();
     // .then((res) => res.json())
@@ -92,9 +95,7 @@ export default function App() {
             </>
           }
         /> */}
-        <Box>
-          <MovieList movies={movies} />
-        </Box>
+        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
         <Box>
           <Summary watched={watched} />
           <WatchedMovieList watched={watched} />
@@ -104,7 +105,9 @@ export default function App() {
     </>
   );
 }
-
+function Loader() {
+  return <p className="loader">Loading...</p>;
+}
 function Box({ children }) {
   const [isOpen, setIsOpen] = useState(true);
 
