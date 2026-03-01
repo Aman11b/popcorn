@@ -55,17 +55,26 @@ const KEY = "20de2ed1";
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
+  const query = "game";
 
   // this will load after the component has been painted on screen
   useEffect(function () {
-    // this is side effect
-    fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
-      .then((res) => res.json())
-      .then((data) => setMovies(data.Search));
+    async function fetchMovies() {
+      const res = await fetch(
+        `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+      );
+      // this is side effect
+      const data = await res.json();
+      setMovies(data.Search);
+      console.log(data.Search);
+    }
+    fetchMovies();
+    // .then((res) => res.json())
+    // .then((data) => setMovies(data.Search));
     // if there is setstate in render logic it will trigger the state infinite times
   }, []);
   // [] dependencies arrys-> it will work ehn component is mounted
-
+  // effect cant return promise so cant use async in effect directly so create a function adn indirectly add it
   return (
     <>
       <NavBar>
@@ -363,3 +372,21 @@ function Summary({ watched }) {
  * - component instance is destoyed and removed
  * - state and prop are destroyed
  */
+
+/**
+ * A First look at effect
+ * -> Side effect is basically any interaction between a react component and the world outside the compnent
+ * -> side effect should not happend in render logic
+ * -> side effect can be implement by event handlers(function triggered) and effect(useEffect) - Effect allow us to write code that will run at different moment:Mount re-ender or un-mount
+ */
+
+/**
+ * Event handler
+ * - executed when the corresponding event happens
+ * - use to react to an event
+ * - preferred way to create side effects
+ * Effect
+ * - executed after the component mount(initial mount) and after subsequent re-render(accourding to dependency array)
+ * - each one has Effect code + Cleanup function + dependency array
+ * - used to keep a component synchronized with some external system
+ * */
