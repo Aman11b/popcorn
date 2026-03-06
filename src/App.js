@@ -56,20 +56,32 @@ export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
   const [isLoading, SetIsLoading] = useState(false);
-  const query = "game";
+  const [error, setError] = useState("");
+  const query = "sspr";
 
   // this will load after the component has been painted on screen
   useEffect(function () {
     async function fetchMovies() {
-      SetIsLoading(true);
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-      );
-      // this is side effect
-      const data = await res.json();
-      setMovies(data.Search);
-      SetIsLoading(false);
-      // console.log(data.Search);
+      try {
+        SetIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+        );
+
+        if (!res.ok) throw new Error("Some wehnt wrong with fetching movie");
+
+        // this is side effect
+        const data = await res.json();
+        if (data.Response === "False") throw new Error("❌ Movie not found");
+        setMovies(data.Search);
+
+        // console.log(data.Search);
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+      } finally {
+        SetIsLoading(false);
+      }
     }
     fetchMovies();
     // .then((res) => res.json())
@@ -95,7 +107,12 @@ export default function App() {
             </>
           }
         /> */}
-        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
+        <Box>
+          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
+          {isLoading && <Loader />}
+          {isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
+        </Box>
         <Box>
           <Summary watched={watched} />
           <WatchedMovieList watched={watched} />
@@ -107,6 +124,9 @@ export default function App() {
 }
 function Loader() {
   return <p className="loader">Loading...</p>;
+}
+function ErrorMessage({ message }) {
+  return <p className="error">{message}</p>;
 }
 function Box({ children }) {
   const [isOpen, setIsOpen] = useState(true);
