@@ -53,47 +53,82 @@ const average = (arr) =>
 const KEY = "20de2ed1";
 // Structural component
 export default function App() {
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
   const [isLoading, SetIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const query = "sspr";
+  const tempQuery = "interstellar";
+
+  /**
+  *  useEffect(function () {
+    console.log("A: After initial render");
+  }, []);
+
+  useEffect(function () {
+    console.log("B: After every render");
+  });
+
+  useEffect(
+    function () {
+      console.log("D");
+    },
+    [query],
+  );
+
+  console.log("C: During Render");
+
+   * C -> A -> B
+   * -> effect runs after browser paint to C ran first
+   * -> A come then as it appears first then B
+   * -> but is re-render happens coz pf query state C-B(after every render) will be printed,A wont as it doent not have query in its dependency array
+  
+  */
 
   // this will load after the component has been painted on screen
-  useEffect(function () {
-    async function fetchMovies() {
-      try {
-        SetIsLoading(true);
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-        );
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        try {
+          SetIsLoading(true);
+          setError("");
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+          );
 
-        if (!res.ok) throw new Error("Some wehnt wrong with fetching movie");
+          if (!res.ok) throw new Error("Some went wrong with fetching movie");
 
-        // this is side effect
-        const data = await res.json();
-        if (data.Response === "False") throw new Error("❌ Movie not found");
-        setMovies(data.Search);
+          // this is side effect
+          const data = await res.json();
+          if (data.Response === "False") throw new Error("❌ Movie not found");
+          setMovies(data.Search);
 
-        // console.log(data.Search);
-      } catch (err) {
-        console.error(err.message);
-        setError(err.message);
-      } finally {
-        SetIsLoading(false);
+          // console.log(data.Search);
+        } catch (err) {
+          console.error(err.message);
+          setError(err.message);
+        } finally {
+          SetIsLoading(false);
+        }
       }
-    }
-    fetchMovies();
-    // .then((res) => res.json())
-    // .then((data) => setMovies(data.Search));
-    // if there is setstate in render logic it will trigger the state infinite times
-  }, []);
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+      fetchMovies();
+      // .then((res) => res.json())
+      // .then((data) => setMovies(data.Search));
+      // if there is setstate in render logic it will trigger the state infinite times
+    },
+    [query],
+  );
   // [] dependencies arrys-> it will work ehn component is mounted
   // effect cant return promise so cant use async in effect directly so create a function adn indirectly add it
   return (
     <>
       <NavBar>
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResult movies={movies} />
       </NavBar>
 
@@ -110,7 +145,7 @@ export default function App() {
         <Box>
           {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
           {isLoading && <Loader />}
-          {isLoading && !error && <MovieList movies={movies} />}
+          {!isLoading && !error && <MovieList movies={movies} />}
           {error && <ErrorMessage message={error} />}
         </Box>
         <Box>
@@ -204,8 +239,7 @@ function Logo() {
 }
 
 // stateful component
-function Search() {
-  const [query, setQuery] = useState("");
+function Search({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -413,3 +447,27 @@ function Summary({ watched }) {
  * - each one has Effect code + Cleanup function + dependency array
  * - used to keep a component synchronized with some external system
  * */
+
+/**
+ * DEPENDENCY ARRAY
+ * -> BY default effect run after every render we can prevent that by passing a dependency array
+ * -> without the dependency array ,React doent know when to run the effect
+ * -> Each time one of the depnedecies change the effect will be executed again
+ * # every state variable and prop used inside the effect MUST be included in the dependency array (otherwise we get a "stale closure")
+ * => useEffect is like an event listener that is listeniing for one dependency to change,Whenever a dependency chnages it will execute the effect again
+ * -> effect react to update to state and props used inside the effect(the dependency).So effect are "reactive"
+ * -> Component state/prop -> synchronize with -> external system(side effect)
+ => Dependency(state or prop chnages)-> effect is executed again,component is re-rendered (effect and component lifecycle are deeply connected)
+ -> we can use the dependency array to run effect ehrn the component render or re-renders
+
+ | Hook Usage | Synchronization | Lifecycle |
+|-------------|----------------|-----------|
+| `useEffect(fn)` | Syncs with every render | Runs after every render |
+| `useEffect(fn, [])` | No dependencies | Runs only once after mount |
+| `useEffect(fn, [x])` | Syncs with `x` | Runs on mount and when `x` changes |
+| `useEffect(fn, [x, y, z])` | Syncs with `x`, `y`, `z` | Runs on mount and when any dependency changes |
+* => when are effect executed (timeline)
+
+# Mounting(initial render)-> commit -> browser paint -> EFFECTS(if effect sets state ,an additional render will be required thast why it happens later) -> (title change -> re-render -> commit ->LAYOUT EFFECT -> browser paint -> () -> EFFECT) -> unmount -> ()
+ 
+ */
