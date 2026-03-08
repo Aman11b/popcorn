@@ -53,12 +53,12 @@ const average = (arr) =>
 const KEY = "20de2ed1";
 // Structural component
 export default function App() {
-  const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [query, setQuery] = useState("Matrix");
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
   const [isLoading, SetIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const tempQuery = "interstellar";
+  const [selectedId, setSelectedId] = useState(null);
 
   /**
   *  useEffect(function () {
@@ -86,6 +86,14 @@ export default function App() {
   */
 
   // this will load after the component has been painted on screen
+
+  function handleSelectMovie(id) {
+    setSelectedId(id);
+  }
+  function handleCloseMovie() {
+    setSelectedId(null);
+  }
+
   useEffect(
     function () {
       async function fetchMovies() {
@@ -145,12 +153,27 @@ export default function App() {
         <Box>
           {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
           {isLoading && <Loader />}
-          {!isLoading && !error && <MovieList movies={movies} />}
+          {!isLoading && !error && (
+            <MovieList
+              movies={movies}
+              onSelectMovie={handleSelectMovie}
+              onCloseMovie={handleCloseMovie}
+            />
+          )}
           {error && <ErrorMessage message={error} />}
         </Box>
         <Box>
-          <Summary watched={watched} />
-          <WatchedMovieList watched={watched} />
+          {selectedId ? (
+            <MovieDetails
+              selectedId={selectedId}
+              onCloseMovie={handleCloseMovie}
+            />
+          ) : (
+            <>
+              <Summary watched={watched} />
+              <WatchedMovieList watched={watched} />
+            </>
+          )}
         </Box>
         {/* <WatchedBox /> */}
       </Main>
@@ -256,9 +279,20 @@ function Main({ children }) {
   return <main className="main">{children}</main>;
 }
 
-function Movie({ movie }) {
+// stateful
+function MovieList({ movies, onSelectMovie }) {
   return (
-    <li>
+    <ul className="list list-movies">
+      {movies?.map((movie) => (
+        <Movie movie={movie} key={movie.imdbID} onSelectMovie={onSelectMovie} />
+      ))}
+    </ul>
+  );
+}
+
+function Movie({ movie, onSelectMovie }) {
+  return (
+    <li onClick={() => onSelectMovie(movie.imdbID)}>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
       <h3>{movie.Title}</h3>
       <div>
@@ -271,14 +305,15 @@ function Movie({ movie }) {
   );
 }
 
-// stateful
-function MovieList({ movies }) {
+function MovieDetails({ selectedId, onCloseMovie }) {
   return (
-    <ul className="list">
-      {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} />
-      ))}
-    </ul>
+    <div className="details">
+      <button className="btn-back" onClick={onCloseMovie}>
+        &larr;
+      </button>
+
+      {selectedId}
+    </div>
   );
 }
 
