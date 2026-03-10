@@ -54,7 +54,7 @@ const average = (arr) =>
 const KEY = "20de2ed1";
 // Structural component
 export default function App() {
-  const [query, setQuery] = useState("Matrix");
+  const [query, setQuery] = useState("1988");
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [isLoading, SetIsLoading] = useState(false);
@@ -100,6 +100,7 @@ export default function App() {
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movies) => movies.imdbID !== id));
   }
+
   useEffect(
     function () {
       const controller = new AbortController();
@@ -135,6 +136,7 @@ export default function App() {
         setError("");
         return;
       }
+      handleCloseMovie();
       fetchMovies();
 
       return function () {
@@ -365,6 +367,24 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   }
+
+  useEffect(
+    function () {
+      function callback(e) {
+        if (e.code === "Escape") {
+          onCloseMovie();
+          // console.log("Closing...");
+        }
+      }
+      document.addEventListener("keydown", callback);
+
+      return function () {
+        document.removeEventListener("keydown", callback);
+      };
+    },
+    [onCloseMovie],
+  );
+
   useEffect(
     function () {
       SetIsLoading(true);
