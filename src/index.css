@@ -348,6 +348,7 @@ body {
   gap: 2.4rem;
   font-size: 1.6rem;
   font-weight: 600;
+  width: fit-content;
 }
 
 .summary p {
