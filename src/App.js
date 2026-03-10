@@ -102,12 +102,14 @@ export default function App() {
   }
   useEffect(
     function () {
+      const controller = new AbortController();
       async function fetchMovies() {
         try {
           SetIsLoading(true);
           setError("");
           const res = await fetch(
             `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            { signal: controller.signal },
           );
 
           if (!res.ok) throw new Error("Some went wrong with fetching movie");
@@ -116,11 +118,14 @@ export default function App() {
           const data = await res.json();
           if (data.Response === "False") throw new Error("❌ Movie not found");
           setMovies(data.Search);
+          setError("");
 
           // console.log(data.Search);
         } catch (err) {
-          console.error(err.message);
-          setError(err.message);
+          // console.error(err.message);
+          if (err.name !== "AbortError") {
+            setError(err.message);
+          }
         } finally {
           SetIsLoading(false);
         }
@@ -131,6 +136,14 @@ export default function App() {
         return;
       }
       fetchMovies();
+
+      return function () {
+        controller.abort();
+      };
+      //on every keystoke component gets re-render and then the clean up will be called as it triggers between re-render too,so each time a re-render happens the controller will abort the current fetch request, that is eactly what we want to cancel request
+
+      // one problem with this is as soon as it get cancelled JS sees it as an error,but we can ignore it
+
       // .then((res) => res.json())
       // .then((data) => setMovies(data.Search));
       // if there is setstate in render logic it will trigger the state infinite times
