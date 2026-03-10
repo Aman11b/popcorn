@@ -373,6 +373,13 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     function () {
       if (!title) return;
       document.title = `Movie | ${title}`;
+
+      return function () {
+        document.title = "popCorn";
+        console.log(`Clean up effect for movie ${title}`);
+
+        // closure in JS mean a function will always remeber all the variables that were present at the time and place data function was created
+      };
     },
     [title],
   );
@@ -634,6 +641,19 @@ function Summary({ watched }) {
 | `useEffect(fn, [x, y, z])` | Syncs with `x`, `y`, `z` | Runs on mount and when any dependency changes |
 * => when are effect executed (timeline)
 
-# Mounting(initial render)-> commit -> browser paint -> EFFECTS(if effect sets state ,an additional render will be required thast why it happens later) -> (title change -> re-render -> commit ->LAYOUT EFFECT -> browser paint -> () -> EFFECT) -> unmount -> ()
+# Mounting(initial render)-> commit -> browser paint -> EFFECTS(if effect sets state ,an additional render will be required thast why it happens later) -> (title change -> re-render -> commit ->LAYOUT EFFECT -> browser paint -> CLEANUP -> EFFECT) -> unmount -> CLEANUP
  
+ */
+
+/**
+ * THE CLEANUP FUNCTION
+ * -> function that we can return from an effect(optional)
+ * -> Runs on two occation
+ * - 1. before the effect is executed
+ * - 2. after a component has unmounted
+ * -> component render=> execute effect if dependency array includes updated data
+ * -> component unmount-> execute cleanup function
+ * -> necessary whenever the side effect keeps happening after the component has been re-rendered or unmounted
+ * -> eg: http request > cancel request in cleanup,API subscription > cancel subscription,start timer > stop timer,add event listener > remove listener
+ * -> each effect should do only one thing! use on useEffect hook for each side effect.This makes effect easier to clean up
  */
