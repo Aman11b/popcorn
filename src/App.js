@@ -1,53 +1,6 @@
 import { useEffect, useState } from "react";
 import StarRating from "./StarRating";
 
-const tempMovieData = [
-  {
-    imdbID: "tt1375666",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-  },
-  {
-    imdbID: "tt0133093",
-    Title: "The Matrix",
-    Year: "1999",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg",
-  },
-  {
-    imdbID: "tt6751668",
-    Title: "Parasite",
-    Year: "2019",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
-  },
-];
-
-const tempWatchedData = [
-  {
-    imdbID: "tt1375666",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-    runtime: 148,
-    imdbRating: 8.8,
-    userRating: 10,
-  },
-  {
-    imdbID: "tt0088763",
-    Title: "Back to the Future",
-    Year: "1985",
-    Poster:
-      "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-    runtime: 116,
-    imdbRating: 8.5,
-    userRating: 9,
-  },
-];
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
@@ -56,38 +9,15 @@ const KEY = "20de2ed1";
 export default function App() {
   const [query, setQuery] = useState("1988");
   const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [isLoading, SetIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
 
-  /**
-  *  useEffect(function () {
-    console.log("A: After initial render");
-  }, []);
-
-  useEffect(function () {
-    console.log("B: After every render");
+  // const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState(function () {
+    const storedValue = localStorage.getItem("watched");
+    return JSON.parse(storedValue);
   });
-
-  useEffect(
-    function () {
-      console.log("D");
-    },
-    [query],
-  );
-
-  console.log("C: During Render");
-
-   * C -> A -> B
-   * -> effect runs after browser paint to C ran first
-   * -> A come then as it appears first then B
-   * -> but is re-render happens coz pf query state C-B(after every render) will be printed,A wont as it doent not have query in its dependency array
-  
-  */
-
-  // this will load after the component has been painted on screen
-
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
   }
@@ -96,11 +26,19 @@ export default function App() {
   }
   function handleAddWatched(movie) {
     setWatched((watched) => [...watched, movie]);
+
+    // localStorage.setItem("watched", JSON.stringify([...watched, movie]));
   }
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movies) => movies.imdbID !== id));
   }
 
+  useEffect(
+    function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched],
+  );
   useEffect(
     function () {
       const controller = new AbortController();
@@ -142,18 +80,10 @@ export default function App() {
       return function () {
         controller.abort();
       };
-      //on every keystoke component gets re-render and then the clean up will be called as it triggers between re-render too,so each time a re-render happens the controller will abort the current fetch request, that is eactly what we want to cancel request
-
-      // one problem with this is as soon as it get cancelled JS sees it as an error,but we can ignore it
-
-      // .then((res) => res.json())
-      // .then((data) => setMovies(data.Search));
-      // if there is setstate in render logic it will trigger the state infinite times
     },
     [query],
   );
-  // [] dependencies arrys-> it will work ehn component is mounted
-  // effect cant return promise so cant use async in effect directly so create a function adn indirectly add it
+
   return (
     <>
       <NavBar>
@@ -224,41 +154,6 @@ function Box({ children }) {
     </div>
   );
 }
-
-// function Box({ children }) {
-//   const [isOpen, setIsOpen] = useState(true);
-
-//   return (
-//     <div className="box">
-//       <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
-//         {isOpen ? "–" : "+"}
-//       </button>
-//       {isOpen && children}
-//     </div>
-//   );
-// }
-
-// function WatchedBox() {
-//   const [watched, setWatched] = useState(tempWatchedData);
-//   const [isOpen2, setIsOpen2] = useState(true);
-
-//   return (
-//     <div className="box">
-//       <button
-//         className="btn-toggle"
-//         onClick={() => setIsOpen2((open) => !open)}
-//       >
-//         {isOpen2 ? "–" : "+"}
-//       </button>
-//       {isOpen2 && (
-//         <>
-//           <Summary watched={watched} />
-//           <WatchedMovieList watched={watched} />
-//         </>
-//       )}
-//     </div>
-//   );
-// }
 
 function NavBar({ children }) {
   return (
@@ -339,6 +234,13 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId,
   )?.userRating;
+
+  /**
+   * More Details on useState
+   * -> what ever we pass in useState is in initial state,react will only look at it on initial state that is when it mounts
+   *
+   */
+
   // each time component render hence []dependency array
   const {
     Title: title,
@@ -689,4 +591,46 @@ function Summary({ watched }) {
  * -> necessary whenever the side effect keeps happening after the component has been re-rendered or unmounted
  * -> eg: http request > cancel request in cleanup,API subscription > cancel subscription,start timer > stop timer,add event listener > remove listener
  * -> each effect should do only one thing! use on useEffect hook for each side effect.This makes effect easier to clean up
+ */
+
+/**
+ * WHAT ARE REACT HOOKS?
+ * -> special built-in function that allows us to "hook" into react interations:
+ * - creating and accessing state from fiber tree
+ * - registering side effects in fiber tree
+ * - manula DOM selection
+ * -> always start with "use"
+ * -> enables easy reusing of non-visula logic:we can compose multiple hooks into out own custom hooks
+ * -> give function component the ability to won state and run side effect at different lifecycle point(before v16.8 only available in class component)
+ */
+
+/**
+ * OVERVIEW OF ALL BUILT-IN HOOKS
+ | Most used   | Less used            | Only for libraries       |
+|-------------|----------------------|--------------------------|
+| useState    | useCallback          |                          |
+| useEffect   | useMemo              |                          |
+| useReducer  | useTransition        |                          |
+| useContext  | useDeferredValue     | useSyncExternalStore     |
+|             | useLayoutEffect      | useInsertionEffect       |
+|             | useRef               |                          |
+|             | useId                |                          |
+|             | useImperativeHandle  |                          |
+|             | useDebugValue        |                          |
+ *
+ */
+
+/**
+ * THE RULES OF HOOKS
+ * -> only call hooks at the top level
+ * - do not call hoooks inside conditionals,loops,nested function, or after an early return
+ * - this is necessary to ensure that hooks are always called in the same order(hook rely on this)
+ * # HOOKS REPLY ON CALL ORDER
+ * -> react element tree(virtual DOM) - (on initial render) Fiber tree -> Fiber(props,..,linkedlist of hooks)
+ * > is you called hook in conditions and suppose there are many hooks formed in form of linked list and if suppose one condition retuned false that means that hook is vanished but now what will happen to the link list now we have a hole in link list which is not possible
+ * > why linked list then ,coz it a simplest way to represent to assocaite each hook with its value
+ * -> only call hooks from react function
+ * - only call hooks inside a function component or a custom hook
+ * > these rules are automatically enforced by React's ESLint rules
+ *
  */
