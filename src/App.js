@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 
 const average = (arr) =>
@@ -184,6 +184,27 @@ function Logo() {
 
 // stateful component
 function Search({ query, setQuery }) {
+  // this is not react way to do things we want things declarative
+  // useEffect(function () {
+  //   const el = document.querySelector(".search");
+  //   console.log(el);
+  //   el.focus();
+  // }, []);
+
+  const inputEl = useRef(null);
+
+  useEffect(function () {
+    function callback(e) {
+      if (document.activeElement === inputEl.current) return;
+      if (e.code === "Enter") {
+        inputEl.current.focus();
+        setQuery("");
+      }
+    }
+    document.addEventListener("keydown", callback);
+    return () => document.addEventListener("keydown", callback);
+  }, []);
+
   return (
     <input
       className="search"
@@ -191,9 +212,21 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
     />
   );
 }
+
+/**
+ * WHAT ARE REFS?
+ * -> "BOX" (object) with a mutable .current property that is persistsed across renders("normal veriable are always reset")
+ * -> we can write to and read from the ref using .current
+ * -> Two big use cases
+ * - creating a variable that stays the same between renders(eg previous stsate,setTimeout id etc..)
+ * - selecting and storing DOM element
+ * -> Refs are for data that is not rendered:usually only appear in event handlers or effect,not in JSX (otherwise use State)
+ * -> Do not read or write .current in render logic(like state)
+ */
 
 // structural
 function Main({ children }) {
@@ -632,5 +665,31 @@ function Summary({ watched }) {
  * -> only call hooks from react function
  * - only call hooks inside a function component or a custom hook
  * > these rules are automatically enforced by React's ESLint rules
- *
+
+ */
+
+/**
+ * Summary of defining and updating sytate
+ * -> what ever we pass in useState is in initial state,react will only look at it on initial state that is when it mounts
+ * -> creating state
+ * - Simple
+ * ```
+ * const [count,setCount]=useState(23);
+ * ```
+ * - based on function(lazy evaluation)
+ * ```
+ * const [count,setCount]=useState(()=>localStorage.getItem("count"));
+ * ```
+ * > function must be pure and accept no argument,called only on initial render
+ * -> Updating state
+ * - Simple
+ * ```
+ * setCount(1000);
+ * ```
+ * - Based on current state
+ * ```
+ * setCount((c)=>c+1)
+ * ```
+ * > Function must be pure and return next state
+ * ### make sure to NOT mutate object or array,but to replace them
  */
