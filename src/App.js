@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
+import { useMovie } from "./useMovie";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -8,10 +9,8 @@ const KEY = "20de2ed1";
 // Structural component
 export default function App() {
   const [query, setQuery] = useState("1988");
-  const [movies, setMovies] = useState([]);
-  const [isLoading, SetIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
+  const { movies, isLoading, error } = useMovie(query, handleCloseMovie);
 
   // const [watched, setWatched] = useState([]);
   const [watched, setWatched] = useState(function () {
@@ -38,50 +37,6 @@ export default function App() {
       localStorage.setItem("watched", JSON.stringify(watched));
     },
     [watched],
-  );
-  useEffect(
-    function () {
-      const controller = new AbortController();
-      async function fetchMovies() {
-        try {
-          SetIsLoading(true);
-          setError("");
-          const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-            { signal: controller.signal },
-          );
-
-          if (!res.ok) throw new Error("Some went wrong with fetching movie");
-
-          // this is side effect
-          const data = await res.json();
-          if (data.Response === "False") throw new Error("❌ Movie not found");
-          setMovies(data.Search);
-          setError("");
-
-          // console.log(data.Search);
-        } catch (err) {
-          // console.error(err.message);
-          if (err.name !== "AbortError") {
-            setError(err.message);
-          }
-        } finally {
-          SetIsLoading(false);
-        }
-      }
-      if (query.length < 3) {
-        setMovies([]);
-        setError("");
-        return;
-      }
-      handleCloseMovie();
-      fetchMovies();
-
-      return function () {
-        controller.abort();
-      };
-    },
-    [query],
   );
 
   return (
@@ -700,4 +655,19 @@ function Summary({ watched }) {
  * ```
  * > Function must be pure and return next state
  * ### make sure to NOT mutate object or array,but to replace them
+ */
+
+/**
+ * RESUSING LOGIC WITH CUSTOM HOOKS
+ * -> we can reuse two things in react a piece of UI(component) or logic(does logic have any hooks-(yes)-> Custom Hook -(No)-> Regualr function)
+ * -> allow us to reuse non-visual logic in multiple components
+ * -> one custom hook should have one purpose,to make it reusable and portable(even across multiple projects)
+ * -> rules of hooks apply to custom hooks too
+ * -> basically its just a JS function,unlike component it can receive and return any relevent data(usually [] or{})
+ * -> custom hooks need to use one or more react hooks
+ * -> fucntion names needs to start with use
+ * => when to create one
+ * - we want to reuse some part of non-visual logic
+ * - simpley want to extract a hig part of our component out into some custom hook
+ *
  */
