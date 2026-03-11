@@ -193,17 +193,20 @@ function Search({ query, setQuery }) {
 
   const inputEl = useRef(null);
 
-  useEffect(function () {
-    function callback(e) {
-      if (document.activeElement === inputEl.current) return;
-      if (e.code === "Enter") {
-        inputEl.current.focus();
-        setQuery("");
+  useEffect(
+    function () {
+      function callback(e) {
+        if (document.activeElement === inputEl.current) return;
+        if (e.code === "Enter") {
+          inputEl.current.focus();
+          setQuery("");
+        }
       }
-    }
-    document.addEventListener("keydown", callback);
-    return () => document.addEventListener("keydown", callback);
-  }, []);
+      document.addEventListener("keydown", callback);
+      return () => document.addEventListener("keydown", callback);
+    },
+    [setQuery],
+  );
 
   return (
     <input
@@ -263,16 +266,20 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [isLoading, SetIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+
+  const countRef = useRef(0);
+
+  useEffect(
+    function () {
+      if (userRating) countRef.current += 1;
+    },
+    [userRating],
+  );
+
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId,
   )?.userRating;
-
-  /**
-   * More Details on useState
-   * -> what ever we pass in useState is in initial state,react will only look at it on initial state that is when it mounts
-   *
-   */
 
   // each time component render hence []dependency array
   const {
@@ -298,6 +305,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRatingDecisions: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onCloseMovie();
